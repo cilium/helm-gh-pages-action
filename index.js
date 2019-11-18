@@ -36,7 +36,7 @@ async function run() {
       return;
     }
 
-    const repo = `${github.context.repo.owner}/${github.context.repo.repo}`;
+    const repo = core.getInput('repo') || `${github.context.repo.owner}/${github.context.repo.repo}`;
     const repoURL = `https://${accessToken}@github.com/${repo}.git`;
     console.log('Ready to deploy your new shiny site!');
     console.log(`Deploying to repo: ${repo} and branch: ${deployBranch}`);
@@ -69,7 +69,7 @@ async function run() {
         [],
         { cwd: `./${chartsDir}/${chartDirname}` }
       );
-      
+
       console.log(`Packaging helm chart in directory ${chartDirname}`);
       await exec.exec(
         `helm package`,

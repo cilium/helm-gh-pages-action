@@ -1,20 +1,22 @@
-name: 'Helm Publish'
-description: 'Build and deploy your Helm charts to GitHub Pages.'
+name: "Helm Publish"
+description: "Build and deploy your Helm charts to GitHub Pages."
 branding:
-  icon: 'archive'
-  color: 'blue'
+  icon: "archive"
+  color: "blue"
 inputs:
   access-token:
-    description: 'A personal access token needed to push your site after it has been built.'
+    description: "A personal access token needed to push your site after it has been built."
     required: true
   deploy-branch:
-    description: 'The branch expected by GitHub to have the static files needed for your site.'
+    description: "The branch expected by GitHub to have the static files needed for your site."
     required: false
-    default: 'master'
+    default: "master"
   charts-folder:
-    description: 'The folder in which the helm charts are located'
+    description: "The folder in which the helm charts are located"
     required: false
-    default: 'charts'
+    default: "charts"
+  repo:
+    description: "GitHub repository where assets will be deployed (default current)"
 runs:
-  using: 'node12'
-  main: 'index.js'
+  using: "node12"
+  main: "index.js"

@@ -36,6 +36,7 @@ async function run() {
       return;
     }
 
+    const rootDir = path.resolve('./')
     const repo = core.getInput('repo') || `${github.context.repo.owner}/${github.context.repo.repo}`;
     const repoURL = `https://${accessToken}@github.com/${repo}.git`;
     console.log('Ready to deploy your new shiny site!');
@@ -73,7 +74,7 @@ async function run() {
       console.log(`Packaging helm chart in directory ${chartDirname}`);
       await exec.exec(
         `helm package`,
-        [chartDirname, '--destination', '../output'],
+        [chartDirname, '--destination', `${rootDir}/output`],
         { cwd: `./${chartsDir}` }
       );
     }

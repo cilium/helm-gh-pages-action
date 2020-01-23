@@ -28,6 +28,10 @@ async function run() {
     const deployBranch = core.getInput('deploy-branch');
     if (!deployBranch) deployBranch = 'master';
 
+    const sourceBranch = github.context.ref.replace('refs/tags/', '');
+    preamble = core.getInput('readme-preamble');
+    if (!preamble) preamble = '# Helm Repository';
+
     const chartsDir = core.getInput('charts-folder');
 
     if (github.context.ref === `refs/heads/${deployBranch}`) {
@@ -37,9 +41,10 @@ async function run() {
     }
 
     const rootDir = path.resolve('./')
-    const repo = core.getInput('repo') || `${github.context.repo.owner}/${github.context.repo.repo}`;
-    const repoURL = `https://${accessToken}@github.com/${repo}.git`;
-    console.log(`Deploying ${github.context.ref} to repo: ${repo} and branch: ${deployBranch}`);
+    const baseRepo = `${github.context.repo.owner}/${github.context.repo.repo}`;
+    const helmRepo = core.getInput('repo') || baseRepo;
+    const repoURL = `https://${accessToken}@github.com/${helmRepo}.git`;
+    console.log(`Deploying ${sourceBranch} to repo ${helmRepo}/${deployBranch}`);
 
     await exec.exec(`git clone`, ['-b', deployBranch, repoURL, 'output'], {
       cwd: './',
@@ -86,10 +91,31 @@ async function run() {
       console.log('Finished copying CNAME.');
     }
 
+    // Avoid duplicate releases, and ensure at least one line with asterisk
+    await exec.exec(
+      'sed -i',  [`/${sourceBranch}/d`, 'README.md'],
+      { cwd: './output' }
+    );
+    await exec.exec('sed -i', ['$a\*', 'README.md'], { cwd: './output' });
+
+    // Insert the release
+    const releaseURI = `https://github.com/${baseRepo}/releases/tag/${sourceBranch}`;
+    const releaseText = `* [${sourceBranch}](${releaseURI})`;
+    const regexSearch = `^\\(\\*.*\\)`;
+    const regexReplace = `s,,${releaseText}\\n\\1,`;
+    await exec.exec(
+      'sed -i', [`0,/${regexSearch}/${regexReplace}`, 'README.md'],
+      { cwd: './output' }
+    );
+
+    // Remove any trailing empty asterisk lines
+    await exec.exec('sed -i', ['/^\*$/d', 'README.md'], { cwd: './output' });
+
+    // Commit and push to target repository
     await exec.exec(`git add`, ['.'], { cwd: './output' });
     await exec.exec(
       `git commit`,
-      ['-m', `Upload ${github.context.ref} ⎈\n\nDerived from upstream commit${github.context.sha}`],
+      ['-m', `Add ${sourceBranch}@${github.context.sha} ⎈`],
       { cwd: './output' }
     );
     await exec.exec(`git push`, ['-u', 'origin', `${deployBranch}`], {

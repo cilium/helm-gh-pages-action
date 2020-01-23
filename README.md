@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: J12934/helm-gh-pages-action@master
+      - uses: joestringer/helm-gh-pages-action@master
         with:
           access-token: ${{ secrets.ACCESS_TOKEN }}
 ```
@@ -42,6 +42,9 @@ configuration options:
   This is where the packaged charts and index.yaml will be pushed to. Provided as an
   [input][github-action-input].
   Defaults to `master`.
+  
+- **repo**: The GitHub repository to deploy the helm artifacts to. Should be in
+  the form `org/repository`. Defaults to the repository where the action runs.
 
 - **charts-folder**: Charts folder of your repository. Defaults to `charts`
 
@@ -64,6 +67,8 @@ imenrique.com
 ```
 
 > Notice that it's **all capitals CNAME** 😊.
+
+(Note that you can just push the CNAME file directly to the target repository).
 
 ### Assumptions
 

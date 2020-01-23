@@ -82,7 +82,7 @@ async function run() {
     console.log('Packaged all helm charts.');
     console.log(`Building index.yaml`);
 
-    await exec.exec(`helm repo index`, `./output`);
+    await exec.exec(`helm repo index`, `./output`, `--merge output/index.yaml`);
 
     console.log(`Successfully build index.yaml.`);
 

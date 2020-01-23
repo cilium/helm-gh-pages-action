@@ -39,11 +39,8 @@ async function run() {
     const rootDir = path.resolve('./')
     const repo = core.getInput('repo') || `${github.context.repo.owner}/${github.context.repo.repo}`;
     const repoURL = `https://${accessToken}@github.com/${repo}.git`;
-    console.log('Ready to deploy your new shiny site!');
-    console.log(`Deploying to repo: ${repo} and branch: ${deployBranch}`);
-    console.log(
-      'You can configure the deploy branch by setting the `deploy-branch` input for this action.'
-    );
+    console.log(`Deploying ${github.context.ref} to repo: ${repo} and branch: ${deployBranch}`);
+
     await exec.exec(`git clone`, ['-b', deployBranch, repoURL, 'output'], {
       cwd: './',
     });
@@ -60,9 +57,6 @@ async function run() {
     console.log('Initialized helm client');
 
     const chartDirectories = getDirectories(path.resolve(`./${chartsDir}`));
-
-    console.log('Charts dir content');
-    await exec.exec(`ls`, ['-I ".*"'], { cwd: `./${chartsDir}` });
     for (const chartDirname of chartDirectories) {
       console.log(`Resolving helm chart dependency in directory ${chartDirname}`);
       await exec.exec(
@@ -83,8 +77,7 @@ async function run() {
     console.log(`Building index.yaml`);
 
     await exec.exec(`helm repo index`, `./output`, `--merge output/index.yaml`);
-
-    console.log(`Successfully build index.yaml.`);
+    console.log(`Successfully built index.yaml.`);
 
     const cnameExists = await ioUtil.exists('./CNAME');
     if (cnameExists) {
@@ -96,13 +89,13 @@ async function run() {
     await exec.exec(`git add`, ['.'], { cwd: './output' });
     await exec.exec(
       `git commit`,
-      ['-m', `deployed via ⎈ Helm Publish Action for ${github.context.sha}`],
+      ['-m', `Upload ${github.context.ref} ⎈\n\nDerived from upstream commit${github.context.sha}`],
       { cwd: './output' }
     );
     await exec.exec(`git push`, ['-u', 'origin', `${deployBranch}`], {
       cwd: './output',
     });
-    console.log('Finished deploying your site.');
+    console.log('Finished uploading release.');
 
     console.log('Enjoy! ✨');
   } catch (error) {
